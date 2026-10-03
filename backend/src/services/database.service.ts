@@ -31,11 +31,12 @@ export interface UploadLogDocument {
     originalName: string;
     subject: string;
     size: number;
-    status: 'pending' | 'uploaded' | 'failed';
+    status: 'pending' | 'uploaded' | 'failed' | 'deleted';
     url?: string;
     publicId?: string;
     downloadUrl?: string;
     createdAt: Date;
+    deletedAt?: Date;
 }
 
 export interface SubjectFolderDocument {

@@ -58,3 +58,14 @@ export const createNoteAccessUrl = (publicId: string, attachment: boolean): stri
         attachment,
         expires_at: Math.floor(Date.now() / 1000) + 10 * 60,
     });
+
+export const deleteNoteFromCloudinary = async (publicId: string): Promise<void> => {
+    const result = await cloudinary.uploader.destroy(publicId, {
+        resource_type: 'raw',
+        type: 'upload',
+        invalidate: true,
+    });
+    if (result.result !== 'ok' && result.result !== 'not found') {
+        throw new Error(`Cloudinary did not delete the note (result: ${result.result})`);
+    }
+};

@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import { getSemestersCollection, getUploadLogsCollection, getUsersCollection } from '../services/database.service.js';
 import { parseCsv } from '../services/csv.service.js';
 import { createUserAccount, type NewUserDetails } from '../services/user-account.service.js';
+import { deleteNoteFromCloudinary, isCloudinaryConfigured } from '../services/cloudinary.service.js';
 
 export const listUsers: RequestHandler = async (_req, res) => {
     const users = await getUsersCollection()
@@ -26,6 +27,67 @@ export const listUploadActivity: RequestHandler = async (_req, res) => {
     res.json({
         uploads: uploads.map(({ _id, ...upload }) => ({ id: _id.toString(), ...upload })),
     });
+};
+
+export const deleteUpload: RequestHandler = async (req, res) => {
+    const { id } = req.params;
+    if (typeof id !== 'string' || !/^[a-f\d]{24}$/i.test(id)) {
+        res.status(400).json({ message: 'A valid upload ID is required' });
+        return;
+    }
+
+    const uploadLogs = getUploadLogsCollection();
+    const uploadId = new ObjectId(id);
+    const upload = await uploadLogs.findOne({ _id: uploadId });
+    if (!upload) {
+        res.status(404).json({ message: 'Upload not found' });
+        return;
+    }
+    if (upload.status === 'deleted') {
+        res.json({ message: 'File was already deleted' });
+        return;
+    }
+    if (upload.status !== 'uploaded' || !upload.publicId) {
+        res.status(409).json({ message: 'Only uploaded files can be deleted' });
+        return;
+    }
+    if (!isCloudinaryConfigured()) {
+        res.status(503).json({ message: 'Cloudinary storage is not configured' });
+        return;
+    }
+
+    try {
+        await deleteNoteFromCloudinary(upload.publicId);
+    } catch (error) {
+        console.error('Cloudinary note deletion failed:', error);
+        res.status(502).json({ message: 'Cloudinary could not delete the file. Please try again.' });
+        return;
+    }
+
+    let result;
+    try {
+        result = await uploadLogs.updateOne(
+            { _id: uploadId, status: 'uploaded' },
+            { $set: { status: 'deleted', deletedAt: new Date() }, $unset: { url: '' } },
+        );
+    } catch (error) {
+        console.error('Cloudinary note was deleted but its activity record could not be updated:', error);
+        res.status(500).json({
+            message: 'The file was removed from storage, but its activity record could not be updated. Retry deletion to finish cleanup.',
+        });
+        return;
+    }
+    if (!result.matchedCount) {
+        const currentUpload = await uploadLogs.findOne({ _id: uploadId });
+        if (currentUpload?.status === 'deleted') {
+            res.json({ message: 'File deleted successfully' });
+            return;
+        }
+        res.status(409).json({ message: 'File storage was deleted, but its activity record could not be updated' });
+        return;
+    }
+
+    res.json({ message: 'File deleted successfully' });
 };
 
 export const listSemesters: RequestHandler = async (_req, res) => {

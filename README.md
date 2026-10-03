@@ -17,7 +17,7 @@ The Vite development server proxies `/api` to `http://localhost:3000`. For a sep
 - Roll-number and six-digit PIN sign-in, plus PIN reset by email.
 - Responsive home dashboard, subject folders, notifications, and tasks.
 - PDF upload to the authenticated backend endpoint. Files are limited to 3 MB and uploads are grouped by subject in this browser.
-- Admin panel at `/admin` for creating student accounts and reviewing uploader/file activity.
+- Admin panel at `/admin` for creating and searching student accounts, reviewing upload activity, and permanently deleting uploaded files from Cloudinary.
 
 The backend does not currently expose notification or task endpoints. The home notifications/tasks are sample dashboard content. Student upload history is stored in browser local storage, while the admin upload activity log is persisted in MongoDB; uploaded PDFs themselves are stored by the backend in Cloudinary.
 

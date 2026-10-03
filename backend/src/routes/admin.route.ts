@@ -5,6 +5,7 @@ import {
     createSubject,
     deleteSemester,
     deleteSubject,
+    deleteUpload,
     deleteUser,
     importUsers,
     listSemesters,
@@ -22,6 +23,7 @@ router.post('/users', registerUser);
 router.post('/users/import', uploadCsvFile, importUsers);
 router.delete('/users/:id', deleteUser);
 router.get('/activity', listUploadActivity);
+router.delete('/activity/:id', deleteUpload);
 router.get('/semesters', listSemesters);
 router.post('/semesters', createSemester);
 router.delete('/semesters/:semesterId', deleteSemester);

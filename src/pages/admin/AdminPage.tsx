@@ -26,7 +26,7 @@ type UploadActivity = {
   originalName: string;
   subject: string;
   size: number;
-  status: 'pending' | 'uploaded' | 'failed';
+  status: 'pending' | 'uploaded' | 'failed' | 'deleted';
   url?: string;
   createdAt: string;
 };
@@ -80,6 +80,100 @@ function formatSize(size: number): string {
     : `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function UsersDialog({
+  users,
+  loading,
+  busy,
+  deletingUserId,
+  onClose,
+  onDelete,
+}: {
+  users: AdminUser[];
+  loading: boolean;
+  busy: boolean;
+  deletingUserId: string;
+  onClose: () => void;
+  onDelete: (user: AdminUser) => void;
+}) {
+  const [search, setSearch] = useState('');
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredUsers = users.filter((user) =>
+    [user.firstName, user.middleName, user.lastName, user.rollNumber, user.email]
+      .filter(Boolean)
+      .some((value) => value!.toLowerCase().includes(normalizedSearch)),
+  );
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="admin-dialog-backdrop" role="presentation" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <section className="admin-users-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-users-title">
+        <header className="admin-users-dialog-header">
+          <div>
+            <h2 id="admin-users-title">Users</h2>
+            <p>{users.length} most recently created student accounts</p>
+          </div>
+          <button className="admin-secondary-button" type="button" onClick={onClose}>Close</button>
+        </header>
+        <label className="admin-users-search">
+          <span>Search by name, roll number, or email</span>
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search users"
+            autoFocus
+          />
+        </label>
+        <div className="admin-users-list">
+          {loading ? (
+            <p className="admin-empty">Loading users…</p>
+          ) : filteredUsers.length === 0 ? (
+            <p className="admin-empty">{normalizedSearch ? 'No users match your search.' : 'No users yet.'}</p>
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead><tr><th>Name</th><th>Roll number</th><th>Email</th><th>Created</th><th>Action</th></tr></thead>
+                <tbody>{filteredUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td>{[user.firstName, user.middleName, user.lastName].filter(Boolean).join(' ') || 'Student'}</td>
+                    <td>{user.rollNumber}</td>
+                    <td>{user.email}</td>
+                    <td>{formatDate(user.createdAt)}</td>
+                    <td>
+                      <button
+                        className="admin-delete-button"
+                        type="button"
+                        disabled={busy || Boolean(deletingUserId)}
+                        onClick={() => onDelete(user)}
+                      >
+                        {deletingUserId === user.id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [token, setToken] = useState(() => localStorage.getItem(adminTokenKey) ?? '');
   const [username, setUsername] = useState('');
@@ -93,6 +187,7 @@ export default function AdminPage() {
   const [subjectNames, setSubjectNames] = useState<Record<string, string>>({});
   const [importFailures, setImportFailures] = useState<Array<{ row: number; rollNumber: string; message: string }>>([]);
   const [deletingUserId, setDeletingUserId] = useState('');
+  const [usersDialogOpen, setUsersDialogOpen] = useState(false);
   const [busyAction, setBusyAction] = useState('');
   const [dashboard, setDashboard] = useState<DashboardData>({ users: [], uploads: [], semesters: [] });
   const [loading, setLoading] = useState(false);
@@ -228,6 +323,29 @@ export default function AdminPage() {
       }
     } finally {
       setDeletingUserId('');
+    }
+  };
+
+  const deleteUpload = async (upload: UploadActivity) => {
+    if (!window.confirm(`Permanently delete ${upload.originalName}? It will no longer be available to any user.`)) return;
+
+    setBusyAction(`delete-upload-${upload.id}`);
+    try {
+      const response = await fetch(`${apiBase}/api/admin/activity/${encodeURIComponent(upload.id)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await readResponse<{ message: string }>(response);
+      toast.success(result.message);
+      setDashboard(await loadDashboard(token));
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Unable to delete the file.');
+      if (cause instanceof AdminApiError && cause.status === 401) {
+        localStorage.removeItem(adminTokenKey);
+        setToken('');
+      }
+    } finally {
+      setBusyAction('');
     }
   };
 
@@ -369,10 +487,23 @@ export default function AdminPage() {
           <p className="admin-muted">Manage student accounts and review recent uploads.</p>
         </div>
         <div className="admin-header-actions">
+          <button className="admin-secondary-button" type="button" onClick={() => setUsersDialogOpen(true)}>
+            Users ({dashboard.users.length})
+          </button>
           <a className="admin-secondary-button" href="/">Student site</a>
           <button className="admin-secondary-button" onClick={signOut}>Sign out</button>
         </div>
       </header>
+      {usersDialogOpen && (
+        <UsersDialog
+          users={dashboard.users}
+          loading={loading}
+          busy={busy}
+          deletingUserId={deletingUserId}
+          onClose={() => setUsersDialogOpen(false)}
+          onDelete={(user) => void deleteUser(user)}
+        />
+      )}
 
       <section className="admin-panel">
         <div className="admin-section-heading">
@@ -461,31 +592,11 @@ export default function AdminPage() {
       </section>
 
       <section className="admin-panel">
-        <div className="admin-section-heading"><div><h2>Users</h2><p>Recently created student accounts.</p></div></div>
-        {loading ? <p className="admin-empty">Loading users…</p> : dashboard.users.length === 0 ? <p className="admin-empty">No users yet.</p> : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead><tr><th>Name</th><th>Roll number</th><th>Email</th><th>Created</th><th>Action</th></tr></thead>
-              <tbody>{dashboard.users.map((user) => (
-                <tr key={user.id}>
-                  <td>{[user.firstName, user.middleName, user.lastName].filter(Boolean).join(' ') || 'Student'}</td>
-                  <td>{user.rollNumber}</td>
-                  <td>{user.email}</td>
-                  <td>{formatDate(user.createdAt)}</td>
-                  <td><button className="admin-delete-button" disabled={busy || Boolean(deletingUserId)} onClick={() => void deleteUser(user)}>{deletingUserId === user.id ? 'Deleting…' : 'Delete'}</button></td>
-                </tr>
-              ))}</tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      <section className="admin-panel">
         <div className="admin-section-heading"><div><h2>Upload activity</h2><p>Latest 200 upload attempts, including who uploaded each file.</p></div></div>
         {loading ? <p className="admin-empty">Loading activity…</p> : dashboard.uploads.length === 0 ? <p className="admin-empty">No uploads recorded yet.</p> : (
           <div className="admin-table-wrap">
             <table className="admin-table">
-              <thead><tr><th>File</th><th>Uploaded by</th><th>Subject</th><th>Status</th><th>Date</th></tr></thead>
+              <thead><tr><th>File</th><th>Uploaded by</th><th>Subject</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
               <tbody>{dashboard.uploads.map((upload) => (
                 <tr key={upload.id}>
                   <td>{upload.url ? <a href={upload.url} target="_blank" rel="noreferrer">{upload.originalName}</a> : upload.originalName}<small>{formatSize(upload.size)}</small></td>
@@ -493,6 +604,16 @@ export default function AdminPage() {
                   <td>{upload.subject}<small>{upload.semesterName}</small></td>
                   <td><span className={`admin-status ${upload.status}`}>{upload.status}</span></td>
                   <td>{formatDate(upload.createdAt)}</td>
+                  <td>{upload.status === 'uploaded' ? (
+                    <button
+                      className="admin-delete-button"
+                      type="button"
+                      disabled={Boolean(busyAction)}
+                      onClick={() => void deleteUpload(upload)}
+                    >
+                      {busyAction === `delete-upload-${upload.id}` ? 'Deleting…' : 'Delete file'}
+                    </button>
+                  ) : '—'}</td>
                 </tr>
               ))}</tbody>
             </table>
