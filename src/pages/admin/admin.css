@@ -563,3 +563,120 @@
     padding-left: 9px;
   }
 }
+
+.admin-theme-toggle {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+
+html[data-theme="dark"] .admin-login-page,
+html[data-theme="dark"] .admin-page {
+  color: #e4e8f0;
+  background: #11141c;
+}
+
+html[data-theme="dark"] .admin-login-card,
+html[data-theme="dark"] .admin-panel,
+html[data-theme="dark"] .admin-users-dialog {
+  border-color: #2b3140;
+  background: #1a1f2b;
+  box-shadow: 0 8px 28px #0003;
+}
+
+html[data-theme="dark"] .admin-header h1,
+html[data-theme="dark"] .admin-login-card h1,
+html[data-theme="dark"] .admin-section-heading h2,
+html[data-theme="dark"] .admin-semester-heading h3,
+html[data-theme="dark"] .admin-table td,
+html[data-theme="dark"] .admin-users-dialog-header h2 {
+  color: #e4e8f0;
+}
+
+html[data-theme="dark"] .admin-muted,
+html[data-theme="dark"] .admin-section-heading p,
+html[data-theme="dark"] .admin-semester-heading p,
+html[data-theme="dark"] .admin-csv-hint,
+html[data-theme="dark"] .admin-users-dialog-header p {
+  color: #929caf;
+}
+
+html[data-theme="dark"] .admin-login-card label,
+html[data-theme="dark"] .admin-create-form label,
+html[data-theme="dark"] .admin-inline-form label,
+html[data-theme="dark"] .admin-file-label,
+html[data-theme="dark"] .admin-table td,
+html[data-theme="dark"] .admin-subject-list li {
+  color: #b2bbca;
+}
+
+html[data-theme="dark"] .admin-login-card input,
+html[data-theme="dark"] .admin-create-form input,
+html[data-theme="dark"] .admin-inline-form input,
+html[data-theme="dark"] .admin-users-search input {
+  border-color: #343b4c;
+  color: #e4e8f0;
+  background: #222836;
+}
+
+html[data-theme="dark"] .admin-secondary-button,
+html[data-theme="dark"] .admin-delete-button {
+  border-color: #343b4c;
+  color: #c1c9d7;
+  background: #222836;
+}
+
+html[data-theme="dark"] .admin-secondary-button:hover {
+  color: #c4b6ff;
+  background: #30294a;
+}
+
+html[data-theme="dark"] .admin-delete-button {
+  border-color: #633b43;
+  color: #f1a0a0;
+}
+
+html[data-theme="dark"] .admin-delete-button:hover:not(:disabled) {
+  background: #3a252c;
+}
+
+html[data-theme="dark"] .admin-semester-card {
+  border-color: #343b4c;
+  background: #1d2330;
+}
+
+html[data-theme="dark"] .admin-subject-list li,
+html[data-theme="dark"] .admin-users-list,
+html[data-theme="dark"] .admin-table td {
+  border-color: #2b3140;
+}
+
+html[data-theme="dark"] .admin-file-label input {
+  border-color: #454d60;
+  color: #b2bbca;
+  background: #222836;
+}
+
+html[data-theme="dark"] .admin-table th {
+  color: #aeb8c8;
+  background: #222836;
+}
+
+html[data-theme="dark"] .admin-status.deleted,
+html[data-theme="dark"] .admin-status.pending {
+  background: #303440;
+  color: #c0c6d1;
+}
+
+html[data-theme="dark"] .admin-import-errors {
+  color: #f0aaa0;
+  background: #3a252c;
+}
+
+html[data-theme="dark"] .admin-error {
+  color: #ff9e9e;
+}
+
+html[data-theme="dark"] .admin-success {
+  color: #73d6ac;
+}

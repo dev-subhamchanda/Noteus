@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { FiArrowRight, FiCheck, FiLock, FiMail, FiShield, FiUser } from 'react-icons/fi';
 import Brand from '../../components/Brand';
+import ThemeToggle from '../../components/ThemeToggle';
 import { loginUser, requestPinReset } from '../../services/auth.service';
 import type { User } from '../../types/app';
 
@@ -50,6 +51,7 @@ export function LoginPage({ onLogin }: { onLogin: (token: string, user: User) =>
 
   return (
     <div className="login-shell">
+      <ThemeToggle className="login-theme-toggle" />
       <section className="login-left">
         <div className="login-brand-wrap"><Brand /></div>
         <div className="login-content">

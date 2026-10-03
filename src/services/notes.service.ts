@@ -1,6 +1,14 @@
 import { apiBase, readApiResponse } from './api';
 import type { Semester, UploadRecord } from '../types/app';
 
+export async function loadSharedNotes(token: string): Promise<UploadRecord[]> {
+  const response = await fetch(`${apiBase}/api/notes/shared`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await readApiResponse<{ notes: UploadRecord[] }>(response);
+  return data.notes;
+}
+
 export async function getNoteAccessUrl(
   publicId: string,
   mode: 'view' | 'download',

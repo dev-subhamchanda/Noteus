@@ -222,6 +222,197 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .secure-note { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 26px; color: #a2aab5; font-size: 9px; }.secure-note svg { color: #72ae95; font-size: 12px; }
 .login-mobile-brand { display: none; }
 
+.theme-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 35px; border: 1px solid #e6e8ee; border-radius: 8px; padding: 0 10px; color: #5e687a; background: #fff; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.theme-toggle:hover { color: #684bd0; background: #f7f6ff; }
+.login-theme-toggle { position: fixed; z-index: 5; top: 18px; right: 18px; }
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  background: #11141c;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app-shell {
+  color: #e4e8f0;
+  background: #11141c;
+}
+
+html[data-theme="dark"] .sidebar,
+html[data-theme="dark"] .profile-popover,
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .subject-card,
+html[data-theme="dark"] .folder-card,
+html[data-theme="dark"] .uploads-table-wrap,
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .pdf-preview-dialog,
+html[data-theme="dark"] .upload-modal,
+html[data-theme="dark"] .secondary-button,
+html[data-theme="dark"] .login-right {
+  border-color: #2b3140;
+  color: #e4e8f0;
+  background-color: #1a1f2b;
+}
+
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .mobile-nav {
+  border-color: #2b3140;
+  background-color: rgb(26 31 43 / 94%);
+}
+
+html[data-theme="dark"] .topbar-search,
+html[data-theme="dark"] .library-search,
+html[data-theme="dark"] .drop-zone,
+html[data-theme="dark"] .uploads-table-head,
+html[data-theme="dark"] .file-actions button,
+html[data-theme="dark"] .file-actions a,
+html[data-theme="dark"] .subject-select {
+  border-color: #343b4c;
+  color: #cbd2df;
+  background-color: #222836;
+}
+
+html[data-theme="dark"] .topbar-search input,
+html[data-theme="dark"] .library-search input,
+html[data-theme="dark"] .input-wrap input,
+html[data-theme="dark"] .subject-select {
+  color: #e4e8f0;
+}
+
+html[data-theme="dark"] .topbar-search input::placeholder,
+html[data-theme="dark"] .library-search input::placeholder,
+html[data-theme="dark"] .input-wrap input::placeholder {
+  color: #8791a3;
+}
+
+html[data-theme="dark"] .brand,
+html[data-theme="dark"] .page-heading h1,
+html[data-theme="dark"] .stat-value,
+html[data-theme="dark"] .section-heading h2,
+html[data-theme="dark"] .task-row h3,
+html[data-theme="dark"] .notification-row h3,
+html[data-theme="dark"] .subject-card-name,
+html[data-theme="dark"] .folder-card h2,
+html[data-theme="dark"] .uploaded-file-name,
+html[data-theme="dark"] .empty-state h2,
+html[data-theme="dark"] .pdf-preview-header strong,
+html[data-theme="dark"] .modal-heading h2,
+html[data-theme="dark"] .login-card h2,
+html[data-theme="dark"] .profile-popover-user,
+html[data-theme="dark"] .login-content h1 {
+  color: #e4e8f0;
+}
+
+html[data-theme="dark"] .nav-item,
+html[data-theme="dark"] .subject-nav-item,
+html[data-theme="dark"] .profile-popover > button,
+html[data-theme="dark"] .file-subject,
+html[data-theme="dark"] .uploads-table-row,
+html[data-theme="dark"] .modal-label,
+html[data-theme="dark"] .login-form label,
+html[data-theme="dark"] .login-benefits,
+html[data-theme="dark"] .input-wrap {
+  color: #b2bbca;
+}
+
+html[data-theme="dark"] .nav-item:hover,
+html[data-theme="dark"] .subject-nav-item:hover,
+html[data-theme="dark"] .profile-popover > button:hover,
+html[data-theme="dark"] .icon-button:hover,
+html[data-theme="dark"] .secondary-button:hover {
+  background: #29253d;
+}
+
+html[data-theme="dark"] .nav-item.active,
+html[data-theme="dark"] .notification-count,
+html[data-theme="dark"] .pin-change-form button,
+html[data-theme="dark"] .drop-icon,
+html[data-theme="dark"] .login-icon {
+  color: #c4b6ff;
+  background-color: #30294a;
+}
+
+html[data-theme="dark"] .profile-row,
+html[data-theme="dark"] .profile-popover-user,
+html[data-theme="dark"] .topbar-divider,
+html[data-theme="dark"] .notification-row,
+html[data-theme="dark"] .all-updates,
+html[data-theme="dark"] .uploads-table-head,
+html[data-theme="dark"] .uploads-table-row,
+html[data-theme="dark"] .pdf-preview-header,
+html[data-theme="dark"] .pdf-preview-note {
+  border-color: #2b3140;
+}
+
+html[data-theme="dark"] .uploads-table-row,
+html[data-theme="dark"] .admin-empty {
+  background-color: #1a1f2b;
+}
+
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .drop-zone,
+html[data-theme="dark"] .pdf-express-viewer-error {
+  border-color: #343b4c;
+  background-color: #1a1f2b;
+}
+
+html[data-theme="dark"] .login-shell,
+html[data-theme="dark"] .login-right {
+  background: #151923;
+}
+
+html[data-theme="dark"] .login-left {
+  background: #201d32;
+}
+
+html[data-theme="dark"] .login-left::after {
+  border-color: #40395e;
+  box-shadow: 0 0 0 35px #201d32, 0 0 0 36px #40395e, 0 0 0 75px #201d32, 0 0 0 76px #494264;
+}
+
+html[data-theme="dark"] .login-intro,
+html[data-theme="dark"] .login-subtitle,
+html[data-theme="dark"] .page-subtitle,
+html[data-theme="dark"] .stat-label,
+html[data-theme="dark"] .stat-meta,
+html[data-theme="dark"] .section-heading p,
+html[data-theme="dark"] .task-row p,
+html[data-theme="dark"] .notification-row p,
+html[data-theme="dark"] .subject-card-meta,
+html[data-theme="dark"] .folder-card p,
+html[data-theme="dark"] .empty-state p,
+html[data-theme="dark"] .modal-description,
+html[data-theme="dark"] .uploaded-file small,
+html[data-theme="dark"] .file-subject small,
+html[data-theme="dark"] .pdf-preview-header small,
+html[data-theme="dark"] .pdf-preview-note {
+  color: #929caf;
+}
+
+html[data-theme="dark"] .input-wrap,
+html[data-theme="dark"] .pin-change-form input,
+html[data-theme="dark"] .subject-select {
+  border-color: #343b4c;
+  background-color: #222836;
+}
+
+html[data-theme="dark"] .pdf-express-viewer {
+  background: #161a24;
+}
+
+html[data-theme="dark"] .pdf-preview-download:hover,
+html[data-theme="dark"] .pdf-preview-open:hover,
+html[data-theme="dark"] .uploaded-file-name:hover {
+  color: #c4b6ff;
+}
+
+html[data-theme="dark"] [class~="text-slate-900"] { color: #e4e8f0; }
+html[data-theme="dark"] [class~="text-slate-500"],
+html[data-theme="dark"] [class~="text-slate-400"] { color: #929caf; }
+html[data-theme="dark"] [class~="bg-white"] { background-color: #1a1f2b; }
+html[data-theme="dark"] [class~="bg-[#f7f8fa]"] { background-color: #11141c; }
+html[data-theme="dark"] [class~="border-slate-200"] { border-color: #2b3140; }
+
 @media (max-width: 1100px) {
   .sidebar { width: 220px; }.app-content { margin-left: 220px; }.main-content { padding-inline: 27px; }.topbar { padding-inline: 28px; }
   .home-columns { grid-template-columns: 1fr; }.notification-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }.notification-row { border-top: 1px solid #f1f2f5; }
@@ -230,6 +421,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 760px) {
   .sidebar { display: none; }.app-content { margin-left: 0; padding-bottom: 68px; }.topbar { height: 62px; padding: 0 18px; }.topbar-mobile-brand { display: block; }.topbar-mobile-brand .brand { font-size: 20px; }.topbar-mobile-brand .brand-mark { width: 29px; height: 29px; }
   .topbar-search { display: none; }.topbar-actions { gap: 10px; }.topbar-divider { display: none; }.user-menu { gap: 0; }.user-menu .avatar { width: 34px; height: 34px; }.user-menu > svg { display: none; }.notification-button { width: 32px; }
+  .theme-toggle span { display: none; }.theme-toggle { width: 34px; min-height: 34px; padding: 0; border: 0; background: transparent; font-size: 16px; }
   .main-content { padding: 27px 18px 35px; }.page-heading { align-items: flex-start; margin-bottom: 20px; }.page-heading h1 { font-size: 25px; }.page-subtitle { max-width: 270px; font-size: 11px; }.heading-button { padding: 10px 11px; font-size: 10px; }
   .welcome-banner { min-height: 200px; padding: 23px 21px; }.welcome-banner h2 { font-size: 23px; }.banner-art { width: 44%; opacity: .85; }.art-book { transform: scale(.82) rotate(11deg); transform-origin: bottom; right: 9%; }.art-book-back { right: -4%; }.art-blob { right: -100px; }
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 12px; }.stat-card { padding: 12px; }.stat-icon { width: 27px; height: 27px; font-size: 14px; }.stat-label { font-size: 9px; margin-top: 9px; }.stat-value { font-size: 20px; }

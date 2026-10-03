@@ -43,13 +43,12 @@ function DashboardRoute() {
 
 function NotesRoute() {
   const { semesterId, subjectId } = useParams();
-  const { uploads, token } = useAuth();
+  const { token } = useAuth();
   const { onUpload, semesters } = useOutletContext<StudentLayoutContext>();
   const navigate = useNavigate();
 
   return (
     <NotesPage
-      uploads={uploads}
       semesters={semesters}
       selectedSemesterId={semesterId ?? null}
       selectedSubjectId={subjectId ?? null}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { toast } from 'sonner';
 import type { Semester } from '../../types/app';
+import ThemeToggle from '../../components/ThemeToggle';
 import './admin.css';
 
 const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
@@ -463,6 +464,7 @@ export default function AdminPage() {
   if (!token) {
     return (
       <main className="admin-login-page">
+        <ThemeToggle className="admin-theme-toggle" />
         <form className="admin-login-card" onSubmit={signIn}>
           <a className="admin-back-link" href="/">← Back to student sign in</a>
           <p className="admin-eyebrow">NOTEUS ADMIN</p>
@@ -487,6 +489,7 @@ export default function AdminPage() {
           <p className="admin-muted">Manage student accounts and review recent uploads.</p>
         </div>
         <div className="admin-header-actions">
+          <ThemeToggle />
           <button className="admin-secondary-button" type="button" onClick={() => setUsersDialogOpen(true)}>
             Users ({dashboard.users.length})
           </button>

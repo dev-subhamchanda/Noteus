@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FiArrowDown, FiFolder, FiMoreHorizontal, FiPlus, FiSearch } from 'react-icons/fi';
+import { toast } from 'sonner';
 import EmptyState from '../../components/EmptyState';
 import UploadList from '../../components/UploadList';
+import { loadSharedNotes } from '../../services/notes.service';
 import type { Semester, UploadRecord } from '../../types/app';
 
 export function NotesPage({
-  uploads,
   semesters,
   selectedSemesterId,
   selectedSubjectId,
@@ -14,7 +15,6 @@ export function NotesPage({
   onUpload,
   token,
 }: {
-  uploads: UploadRecord[];
   semesters: Semester[];
   selectedSemesterId: string | null;
   selectedSubjectId: string | null;
@@ -24,6 +24,27 @@ export function NotesPage({
   token: string;
 }) {
   const [search, setSearch] = useState('');
+  const [sharedNotes, setSharedNotes] = useState<UploadRecord[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setLoadingNotes(true);
+    loadSharedNotes(token)
+      .then((notes) => {
+        if (active) setSharedNotes(notes);
+      })
+      .catch((cause: unknown) => {
+        if (active) toast.error(cause instanceof Error ? cause.message : 'Unable to load shared notes.');
+      })
+      .finally(() => {
+        if (active) setLoadingNotes(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
   const selectedSemester = semesters.find((semester) => semester.id === selectedSemesterId);
   const currentSubject = selectedSemester?.subjects.find((subject) => subject.id === selectedSubjectId);
   const filteredSemesters = useMemo(
@@ -34,7 +55,7 @@ export function NotesPage({
     () => selectedSemester?.subjects.filter((subject) => subject.name.toLowerCase().includes(search.toLowerCase())) ?? [],
     [search, selectedSemester],
   );
-  const subjectUploads = uploads.filter((upload) => (
+  const subjectUploads = sharedNotes.filter((upload) => (
     upload.subjectId ? upload.subjectId === selectedSubjectId : upload.subject === currentSubject?.name
   ));
 
@@ -44,7 +65,7 @@ export function NotesPage({
         <div>
           <p className="eyebrow">YOUR LEARNING LIBRARY</p>
           <h1>{currentSubject?.name ?? selectedSemester?.name ?? 'My notes'}</h1>
-          <p className="page-subtitle">{currentSubject ? 'Your notes, all together in one place.' : selectedSemester ? 'Choose a subject folder to browse its notes.' : 'Browse your semester and subject folders.'}</p>
+          <p className="page-subtitle">{currentSubject ? 'Shared notes in this subject folder.' : selectedSemester ? 'Choose a subject folder to browse its notes.' : 'Browse shared notes by semester and subject.'}</p>
         </div>
         <button className="primary-button heading-button" onClick={onUpload}><FiPlus /> New upload</button>
       </div>
@@ -52,7 +73,7 @@ export function NotesPage({
       {currentSubject && selectedSemester ? (
         <>
           <button className="back-link notes-back" onClick={() => onSelectSubject(null)}><FiArrowDown className="rotate-90" /> {selectedSemester.name}</button>
-          {subjectUploads.length ? <UploadList uploads={subjectUploads} token={token} /> : <EmptyState icon={<FiFolder />} title="This folder is ready for your notes" detail={`Upload a PDF to start building your ${currentSubject.name} collection.`} onAction={onUpload} />}
+          {loadingNotes ? <p className="admin-empty">Loading shared notes…</p> : subjectUploads.length ? <UploadList uploads={subjectUploads} token={token} /> : <EmptyState icon={<FiFolder />} title="This folder is ready for shared notes" detail={`Upload a PDF to start building the ${currentSubject.name} collection.`} onAction={onUpload} />}
         </>
       ) : selectedSemester ? (
         <>
@@ -64,7 +85,7 @@ export function NotesPage({
           {filteredSubjects.length ? (
             <div className="folders-grid">
               {filteredSubjects.map((subject) => {
-                const count = uploads.filter((upload) => upload.subjectId
+                const count = sharedNotes.filter((upload) => upload.subjectId
                   ? upload.subjectId === subject.id
                   : upload.subject === subject.name).length;
                 return (

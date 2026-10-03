@@ -18,6 +18,7 @@ import Avatar from '../components/Avatar';
 import Brand from '../components/Brand';
 import NavItem from '../components/NavItem';
 import { UploadModal } from '../components/UploadModal';
+import ThemeToggle from '../components/ThemeToggle';
 import { loadSemesters } from '../services/semester.service';
 import { changeUserPin } from '../services/auth.service';
 import type { Semester } from '../types/app';
@@ -91,7 +92,7 @@ export default function StudentLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] text-slate-900">
+    <div className="app-shell min-h-screen">
       <div className="desktop-layout">
         <aside className="sidebar">
           <Brand />
@@ -149,6 +150,7 @@ export default function StudentLayout() {
               <kbd>⌘ K</kbd>
             </div>
             <div className="topbar-actions">
+              <ThemeToggle />
               <button className="icon-button notification-button" aria-label="Notifications" onClick={() => navigate('/')}><FiBell /><span /></button>
               <div className="topbar-divider" />
               <button className="user-menu" onClick={() => setShowProfile((open) => !open)} aria-expanded={showProfile} aria-label="Open user profile">

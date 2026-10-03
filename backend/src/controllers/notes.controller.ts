@@ -5,7 +5,6 @@ import { getSemestersCollection, getUploadLogsCollection, getUsersCollection } f
 import { createNoteAccessUrl, isCloudinaryConfigured, uploadNoteToCloudinary } from '../services/cloudinary.service.js';
 
 export const getNoteAccessUrl: RequestHandler = async (req, res) => {
-    const { userId } = (req as AuthenticatedRequest).auth;
     const publicId = typeof req.body?.publicId === 'string' ? req.body.publicId : '';
     const mode = req.body?.mode;
     if (!publicId || publicId.length > 512 || (mode !== 'view' && mode !== 'download')) {
@@ -15,7 +14,6 @@ export const getNoteAccessUrl: RequestHandler = async (req, res) => {
 
     const upload = await getUploadLogsCollection().findOne({
         publicId,
-        userId,
         status: 'uploaded',
     });
     if (!upload) {
@@ -25,6 +23,29 @@ export const getNoteAccessUrl: RequestHandler = async (req, res) => {
 
     res.json({
         url: createNoteAccessUrl(publicId, mode === 'download'),
+    });
+};
+
+export const listSharedNotes: RequestHandler = async (_req, res) => {
+    const uploads = await getUploadLogsCollection()
+        .find({ status: 'uploaded', publicId: { $exists: true } })
+        .sort({ createdAt: -1 })
+        .limit(500)
+        .toArray();
+
+    res.json({
+        notes: uploads.map((upload) => ({
+            id: upload._id.toString(),
+            name: upload.originalName,
+            subject: upload.subject,
+            ...(upload.subjectId ? { subjectId: upload.subjectId } : {}),
+            ...(upload.semesterId ? { semesterId: upload.semesterId } : {}),
+            ...(upload.semesterName ? { semesterName: upload.semesterName } : {}),
+            url: upload.url ?? '',
+            publicId: upload.publicId!,
+            size: upload.size,
+            uploadedAt: upload.createdAt,
+        })),
     });
 };
 

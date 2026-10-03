@@ -16,10 +16,12 @@ The Vite development server proxies `/api` to `http://localhost:3000`. For a sep
 
 - Roll-number and six-digit PIN sign-in, plus PIN reset by email.
 - Responsive home dashboard, subject folders, notifications, and tasks.
+- Persistent light and dark display themes.
 - PDF upload to the authenticated backend endpoint. Files are limited to 3 MB and uploads are grouped by subject in this browser.
+- Notes uploaded to a semester subject folder are shared with all signed-in students, while personal upload history remains in the uploader’s browser.
 - Admin panel at `/admin` for creating and searching student accounts, reviewing upload activity, and permanently deleting uploaded files from Cloudinary.
 
-The backend does not currently expose notification or task endpoints. The home notifications/tasks are sample dashboard content. Student upload history is stored in browser local storage, while the admin upload activity log is persisted in MongoDB; uploaded PDFs themselves are stored by the backend in Cloudinary.
+The backend does not currently expose notification or task endpoints. The home notifications/tasks are sample dashboard content. Personal upload history is stored in browser local storage; shared note metadata and admin upload activity are persisted in MongoDB, and uploaded PDFs are stored in Cloudinary.
 
 ## Frontend structure
 
@@ -33,4 +35,4 @@ The frontend is organized by responsibility:
 - `src/data/` — static subject and dashboard content.
 - `src/types/` and `src/utils/` — shared TypeScript types and formatting helpers.
 
-Student routes are `/login`, `/`, `/notes`, `/notes/:subject`, and `/uploads`. The admin sign-in and panel are served under `/admin`.
+Student routes are `/login`, `/`, `/notes`, `/notes/:semesterId`, `/notes/:semesterId/:subjectId`, and `/uploads`. The admin sign-in and panel are served under `/admin`.
