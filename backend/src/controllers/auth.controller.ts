@@ -99,7 +99,7 @@ export const login: RequestHandler = async (req, res) => {
 
     const token = jwt.sign({ rollNumber: user.rollNumber }, secret, {
         subject: user._id.toString(),
-        expiresIn: '12h',
+        expiresIn: '30d',
     });
 
     res.json({

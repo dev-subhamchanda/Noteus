@@ -32,5 +32,5 @@ export async function changeUserPin(
     },
     body: JSON.stringify({ currentPin, newPin }),
   });
-  return readApiResponse<{ message: string }>(response);
+  return readApiResponse<{ message: string }>(response, true);
 }

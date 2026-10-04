@@ -5,7 +5,7 @@ export async function loadSharedNotes(token: string): Promise<UploadRecord[]> {
   const response = await fetch(`${apiBase}/api/notes/shared`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const data = await readApiResponse<{ notes: UploadRecord[] }>(response);
+  const data = await readApiResponse<{ notes: UploadRecord[] }>(response, true);
   return data.notes;
 }
 
@@ -22,7 +22,7 @@ export async function getNoteAccessUrl(
     },
     body: JSON.stringify({ publicId, mode }),
   });
-  const data = await readApiResponse<{ url: string }>(response);
+  const data = await readApiResponse<{ url: string }>(response, true);
   return data.url;
 }
 
@@ -54,7 +54,7 @@ export async function uploadNote(
     headers: { Authorization: `Bearer ${token}` },
     body,
   });
-  const data = await readApiResponse<UploadedFileResponse>(response);
+  const data = await readApiResponse<UploadedFileResponse>(response, true);
 
   return {
     id: `${data.file.publicId}-${Date.now()}`,

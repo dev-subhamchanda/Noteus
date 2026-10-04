@@ -5,6 +5,6 @@ export async function loadSemesters(token: string): Promise<Semester[]> {
   const response = await fetch(`${apiBase}/api/notes/semesters`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const data = await readApiResponse<{ semesters: Semester[] }>(response);
+  const data = await readApiResponse<{ semesters: Semester[] }>(response, true);
   return data.semesters;
 }
