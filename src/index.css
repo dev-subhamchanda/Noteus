@@ -103,7 +103,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .stat-label { margin: 11px 0 4px; font-size: 10px; color: #8b95a4; }
 .stat-value { font-size: 22px; letter-spacing: -.6px; font-weight: 680; color: #273147; }
 .stat-meta { margin: 3px 0 0; color: #a0a8b4; font-size: 9px; }
-.home-columns { display: grid; grid-template-columns: 1.18fr 1fr; gap: 15px; margin-top: 22px; }
+.home-columns { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 22px; }
 .panel { min-width: 0; padding: 20px 19px 13px; border: 1px solid #edf0f4; border-radius: 13px; background: white; }
 .section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
 .section-heading h2 { margin: 0; display: flex; align-items: center; gap: 8px; color: #273147; font-size: 14px; font-weight: 680; letter-spacing: -.2px; }
@@ -125,6 +125,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .notification-count { border-radius: 20px; padding: 2px 6px; background: #f2efff; color: #7659dc; font-size: 9px; }
 .notification-list { margin-top: 12px; }
 .notification-row { display: flex; align-items: flex-start; gap: 10px; position: relative; padding: 11px 0; border-top: 1px solid #f1f2f5; }
+.recent-activity-panel { margin-bottom: 22px; }
+.recent-activity-panel .notification-list { display: block; }
+.recent-activity-panel .notification-row { width: 100%; border-right: 0; border-bottom: 0; border-left: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.recent-activity-panel .notification-row:hover { background: #faf9ff; }
+.notification-title { display: block; overflow: hidden; color: #364156; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; font-weight: 650; }
+.notification-detail { display: block; overflow: hidden; margin-top: 4px; color: #9aa3b1; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; }
+.notification-empty { margin: 0; padding: 15px 0; border-top: 1px solid #f1f2f5; color: #9aa3b1; font-size: 10px; }
+.notification-permission-button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e6e1fb; border-radius: 7px; padding: 7px 9px; background: #f8f6ff; color: #7053d8; font-size: 9px; font-weight: 650; white-space: nowrap; }
+.notification-permission-button:hover:not(:disabled) { background: #efebff; }
+.notification-permission-button:disabled { cursor: default; opacity: .75; }
 .notification-icon { flex: none; display: grid; place-items: center; width: 29px; height: 29px; border-radius: 8px; font-size: 13px; }
 .notification-icon.purple { background: #f0edff; color: #785be1; }.notification-icon.blue { background: #edf5ff; color: #5793d1; }.notification-icon.orange { background: #fff3e9; color: #db935e; }
 .notification-row small { display: block; margin-top: 5px; color: #adb4bf; font-size: 8px; }
@@ -291,6 +301,7 @@ html[data-theme="dark"] .stat-value,
 html[data-theme="dark"] .section-heading h2,
 html[data-theme="dark"] .task-row h3,
 html[data-theme="dark"] .notification-row h3,
+html[data-theme="dark"] .notification-title,
 html[data-theme="dark"] .subject-card-name,
 html[data-theme="dark"] .folder-card h2,
 html[data-theme="dark"] .uploaded-file-name,
@@ -319,7 +330,8 @@ html[data-theme="dark"] .nav-item:hover,
 html[data-theme="dark"] .subject-nav-item:hover,
 html[data-theme="dark"] .profile-popover > button:hover,
 html[data-theme="dark"] .icon-button:hover,
-html[data-theme="dark"] .secondary-button:hover {
+html[data-theme="dark"] .secondary-button:hover,
+html[data-theme="dark"] .recent-activity-panel .notification-row:hover {
   background: #29253d;
 }
 
@@ -378,6 +390,8 @@ html[data-theme="dark"] .stat-meta,
 html[data-theme="dark"] .section-heading p,
 html[data-theme="dark"] .task-row p,
 html[data-theme="dark"] .notification-row p,
+html[data-theme="dark"] .notification-detail,
+html[data-theme="dark"] .notification-empty,
 html[data-theme="dark"] .subject-card-meta,
 html[data-theme="dark"] .folder-card p,
 html[data-theme="dark"] .empty-state p,
@@ -391,7 +405,8 @@ html[data-theme="dark"] .pdf-preview-note {
 
 html[data-theme="dark"] .input-wrap,
 html[data-theme="dark"] .pin-change-form input,
-html[data-theme="dark"] .subject-select {
+html[data-theme="dark"] .subject-select,
+html[data-theme="dark"] .notification-permission-button {
   border-color: #343b4c;
   background-color: #222836;
 }

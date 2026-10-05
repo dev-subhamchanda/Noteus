@@ -25,6 +25,7 @@ export interface UploadLogDocument {
     rollNumber: string;
     email: string;
     firstName?: string;
+    uploaderName?: string;
     semesterId?: string;
     semesterName?: string;
     subjectId?: string;

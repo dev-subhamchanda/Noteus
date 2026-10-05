@@ -21,7 +21,16 @@ import { UploadModal } from '../components/UploadModal';
 import ThemeToggle from '../components/ThemeToggle';
 import { loadSemesters } from '../services/semester.service';
 import { changeUserPin } from '../services/auth.service';
-import type { Semester } from '../types/app';
+import { loadSharedNotes, streamNoteNotifications } from '../services/notes.service';
+import type { Semester, UploadRecord } from '../types/app';
+
+function mergeRecentUploads(current: UploadRecord[], incoming: UploadRecord[]): UploadRecord[] {
+  const uploadsById = new Map(current.map((upload) => [upload.id, upload]));
+  for (const upload of incoming) uploadsById.set(upload.id, upload);
+  return [...uploadsById.values()]
+    .sort((first, second) => new Date(second.uploadedAt).getTime() - new Date(first.uploadedAt).getTime())
+    .slice(0, 100);
+}
 
 export default function StudentLayout() {
   const { token, user, uploads, setUploads, signOut } = useAuth();
@@ -35,6 +44,10 @@ export default function StudentLayout() {
   const [confirmPin, setConfirmPin] = useState('');
   const [pinBusy, setPinBusy] = useState(false);
   const [semesters, setSemesters] = useState<Semester[]>([]);
+  const [recentUploads, setRecentUploads] = useState<UploadRecord[]>([]);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(
+    () => typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
+  );
 
   useEffect(() => {
     if (!token) {
@@ -54,6 +67,62 @@ export default function StudentLayout() {
     };
   }, [token]);
 
+  useEffect(() => {
+    if (!token) {
+      setRecentUploads([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    let active = true;
+    let connectionErrorShown = false;
+
+    loadSharedNotes(token)
+      .then((uploads) => {
+        if (active) setRecentUploads((current) => mergeRecentUploads(current, uploads));
+      })
+      .catch((cause: unknown) => {
+        if (active) toast.error(cause instanceof Error ? cause.message : 'Unable to load recent activity.');
+      });
+
+    const connect = async () => {
+      let retryDelay = 1_000;
+      while (active) {
+        try {
+          await streamNoteNotifications(token, controller.signal, (upload) => {
+            if (!active) return;
+            setRecentUploads((current) => mergeRecentUploads(current, [upload]));
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+              try {
+                new Notification('New notes uploaded', {
+                  body: `${upload.uploadedBy ?? 'A student'} uploaded ${upload.name} to ${upload.subject}.`,
+                  tag: upload.id,
+                });
+              } catch (cause) {
+                console.error('Unable to show browser notification:', cause);
+              }
+            }
+          });
+          throw new Error('The live notification stream ended.');
+        } catch (cause) {
+          if (!active || controller.signal.aborted) return;
+          if (!connectionErrorShown) {
+            toast.error(cause instanceof Error ? cause.message : 'Live notifications disconnected; retrying.');
+            connectionErrorShown = true;
+          }
+          await new Promise((resolve) => window.setTimeout(resolve, retryDelay));
+          retryDelay = Math.min(retryDelay * 2, 30_000);
+        }
+      }
+    };
+
+    void connect();
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [token]);
+
   if (!user || !token) return null;
 
   const displayName = user.firstName?.trim() || user.email.split('@')[0].replace(/[._-]/g, ' ').split(' ')[0] || 'Student';
@@ -67,6 +136,20 @@ export default function StudentLayout() {
   const handleSignOut = () => {
     signOut();
     navigate('/login', { replace: true });
+  };
+  const enableBrowserNotifications = async () => {
+    if (typeof Notification === 'undefined') {
+      setNotificationPermission('unsupported');
+      return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission === 'granted') toast.success('Browser notifications are enabled.');
+      else if (permission === 'denied') toast.error('Browser notifications are blocked. Update this site’s permissions in your browser settings.');
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Unable to request browser notification permission.');
+    }
   };
   const handlePinChange = async (event: FormEvent) => {
     event.preventDefault();
@@ -151,7 +234,7 @@ export default function StudentLayout() {
             </div>
             <div className="topbar-actions">
               <ThemeToggle />
-              <button className="icon-button notification-button" aria-label="Notifications" onClick={() => navigate('/')}><FiBell /><span /></button>
+              <button className="icon-button notification-button" aria-label="View recent notifications" onClick={() => navigate('/')}><FiBell />{recentUploads.length > 0 && <span />}</button>
               <div className="topbar-divider" />
               <button className="user-menu" onClick={() => setShowProfile((open) => !open)} aria-expanded={showProfile} aria-label="Open user profile">
                 <Avatar name={displayName} />
@@ -185,7 +268,7 @@ export default function StudentLayout() {
           </header>
 
           <main className="main-content">
-            <Outlet context={{ onUpload: () => setShowUpload(true), semesters }} />
+            <Outlet context={{ onUpload: () => setShowUpload(true), semesters, recentUploads, notificationPermission, onEnableNotifications: enableBrowserNotifications }} />
           </main>
         </div>
       </div>

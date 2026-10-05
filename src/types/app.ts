@@ -17,6 +17,7 @@ export type UploadRecord = {
   publicId: string;
   size: number;
   uploadedAt: string;
+  uploadedBy?: string;
 };
 
 export type Semester = {

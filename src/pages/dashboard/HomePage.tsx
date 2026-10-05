@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { FiArrowRight, FiBell, FiCheck, FiCheckCircle, FiClock, FiFileText, FiFolder, FiMoreHorizontal, FiPlus } from 'react-icons/fi';
-import { notifications, tasks } from '../../data/dashboard';
+import { tasks } from '../../data/dashboard';
 import type { AppView, Semester, UploadRecord } from '../../types/app';
 import { getGreeting } from '../../utils/format';
 
-export function HomePage({ displayName, uploads, semesters, onNavigate, onOpenSemester, onUpload }: {
+export function HomePage({ displayName, uploads, semesters, recentUploads, notificationPermission, onEnableNotifications, onNavigate, onOpenSemester, onOpenUpload, onUpload }: {
   displayName: string;
   uploads: UploadRecord[];
   semesters: Semester[];
+  recentUploads: UploadRecord[];
+  notificationPermission: NotificationPermission | 'unsupported';
+  onEnableNotifications: () => void;
   onNavigate: (view: AppView) => void;
   onOpenSemester: (semesterId: string) => void;
+  onOpenUpload: (upload: UploadRecord) => void;
   onUpload: () => void;
 }) {
   const [homeTasks, setHomeTasks] = useState(tasks);
@@ -26,6 +30,37 @@ export function HomePage({ displayName, uploads, semesters, onNavigate, onOpenSe
         </div>
         <button className="primary-button heading-button" onClick={onUpload}><FiPlus /> New upload</button>
       </div>
+
+      <section className="panel notifications-panel recent-activity-panel">
+        <div className="section-heading">
+          <div><h2>Recent activity <span className="notification-count">{recentUploads.length}</span></h2><p>New notes shared across your study circle.</p></div>
+          <button
+            type="button"
+            className="notification-permission-button"
+            onClick={onEnableNotifications}
+            disabled={notificationPermission === 'granted' || notificationPermission === 'denied' || notificationPermission === 'unsupported'}
+            title={notificationPermission === 'denied' ? 'Allow notifications in your browser settings' : undefined}
+          >
+            <FiBell />
+            {notificationPermission === 'granted' ? 'Browser alerts on' : notificationPermission === 'denied' ? 'Alerts blocked' : notificationPermission === 'unsupported' ? 'Alerts unavailable' : 'Enable browser alerts'}
+          </button>
+        </div>
+        <div className="notification-list">
+          {recentUploads.slice(0, 5).map((upload) => (
+            <button className="notification-row" type="button" key={upload.id} onClick={() => onOpenUpload(upload)}>
+              <span className="notification-icon purple"><FiBell /></span>
+              <span className="min-w-0 flex-1">
+                <span className="notification-title">{upload.name}</span>
+                <span className="notification-detail">{upload.uploadedBy ?? 'A student'} uploaded to {upload.subject}{upload.semesterName ? ` · ${upload.semesterName}` : ''}</span>
+                <small>{new Date(upload.uploadedAt).toLocaleString()}</small>
+              </span>
+              <span className="unread-dot" />
+            </button>
+          ))}
+          {!recentUploads.length && <p className="notification-empty">No notes have been shared yet.</p>}
+        </div>
+        <button className="all-updates" onClick={() => onNavigate('notes')}>Browse shared notes <FiArrowRight /></button>
+      </section>
 
       <section className="welcome-banner">
         <div className="banner-copy">
@@ -69,22 +104,6 @@ export function HomePage({ displayName, uploads, semesters, onNavigate, onOpenSe
           </div>
         </section>
 
-        <section className="panel notifications-panel">
-          <div className="section-heading">
-            <div><h2>Notifications <span className="notification-count">3</span></h2><p>Little updates from your study circle.</p></div>
-            <button className="icon-button small" aria-label="Notification options"><FiMoreHorizontal /></button>
-          </div>
-          <div className="notification-list">
-            {notifications.map((notification) => (
-              <div className="notification-row" key={notification.title}>
-                <div className={`notification-icon ${notification.color}`}><FiBell /></div>
-                <div className="min-w-0 flex-1"><h3>{notification.title}</h3><p>{notification.detail}</p><small>{notification.time}</small></div>
-                <span className="unread-dot" />
-              </div>
-            ))}
-          </div>
-          <button className="all-updates" onClick={() => onNavigate('notes')}>View all updates <FiArrowRight /></button>
-        </section>
       </div>
 
       <section className="subject-section">

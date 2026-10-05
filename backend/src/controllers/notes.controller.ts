@@ -3,6 +3,12 @@ import { ObjectId } from 'mongodb';
 import type { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import { getSemestersCollection, getUploadLogsCollection, getUsersCollection } from '../services/database.service.js';
 import { createNoteAccessUrl, isCloudinaryConfigured, uploadNoteToCloudinary } from '../services/cloudinary.service.js';
+import { publishNoteUploaded, subscribeToNoteNotifications } from '../services/note-notifications.service.js';
+
+export const streamNoteNotifications: RequestHandler = (_req, res) => {
+    const cleanup = subscribeToNoteNotifications(res);
+    res.on('close', cleanup);
+};
 
 export const getNoteAccessUrl: RequestHandler = async (req, res) => {
     const publicId = typeof req.body?.publicId === 'string' ? req.body.publicId : '';
@@ -37,6 +43,7 @@ export const listSharedNotes: RequestHandler = async (_req, res) => {
         notes: uploads.map((upload) => ({
             id: upload._id.toString(),
             name: upload.originalName,
+            uploadedBy: upload.uploaderName ?? upload.firstName ?? upload.rollNumber,
             subject: upload.subject,
             ...(upload.subjectId ? { subjectId: upload.subjectId } : {}),
             ...(upload.semesterId ? { semesterId: upload.semesterId } : {}),
@@ -89,12 +96,16 @@ export const uploadNote: RequestHandler = async (req, res) => {
     const title = /\.pdf$/i.test(requestedTitle) ? requestedTitle : `${requestedTitle}.pdf`;
 
     const createdAt = new Date();
+    const uploaderName = [user.firstName, user.middleName, user.lastName]
+        .filter((name): name is string => Boolean(name?.trim()))
+        .join(' ') || user.rollNumber;
     const uploadLogs = getUploadLogsCollection();
     const log = await uploadLogs.insertOne({
         userId,
         rollNumber: user.rollNumber,
         email: user.email,
         ...(user.firstName ? { firstName: user.firstName } : {}),
+        uploaderName,
         semesterId,
         semesterName: semester.name,
         subjectId,
@@ -132,6 +143,24 @@ export const uploadNote: RequestHandler = async (req, res) => {
             publicId: uploaded.publicId,
         } },
     );
+    publishNoteUploaded({
+        id: log.insertedId.toString(),
+        userId,
+        rollNumber: user.rollNumber,
+        email: user.email,
+        ...(user.firstName ? { firstName: user.firstName } : {}),
+        uploaderName,
+        semesterId,
+        semesterName: semester.name,
+        subjectId,
+        originalName: title,
+        subject: subject.name,
+        size: req.file.size,
+        status: 'uploaded',
+        url: uploaded.secureUrl,
+        publicId: uploaded.publicId,
+        createdAt,
+    });
     res.status(201).json({
         message: 'Note uploaded successfully',
         file: {
@@ -140,6 +169,7 @@ export const uploadNote: RequestHandler = async (req, res) => {
             title,
             size: req.file.size,
             uploadedAt: createdAt,
+            uploadedBy: uploaderName,
         },
     });
 };

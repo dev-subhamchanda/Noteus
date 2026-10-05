@@ -6,9 +6,15 @@ import { NotesPage } from '../pages/library/NotesPage';
 import { UploadsPage } from '../pages/library/MyUploadsPage';
 import StudentLayout from '../layouts/StudentLayout';
 import AdminPage from '../pages/admin/AdminPage';
-import type { AppView, Semester } from '../types/app';
+import type { AppView, Semester, UploadRecord } from '../types/app';
 
-type StudentLayoutContext = { onUpload: () => void; semesters: Semester[] };
+type StudentLayoutContext = {
+  onUpload: () => void;
+  semesters: Semester[];
+  recentUploads: UploadRecord[];
+  notificationPermission: NotificationPermission | 'unsupported';
+  onEnableNotifications: () => void;
+};
 
 function RequireStudent() {
   const { token, user } = useAuth();
@@ -23,7 +29,7 @@ function LoginRoute() {
 
 function DashboardRoute() {
   const { user, uploads } = useAuth();
-  const { onUpload, semesters } = useOutletContext<StudentLayoutContext>();
+  const { onUpload, semesters, recentUploads, notificationPermission, onEnableNotifications } = useOutletContext<StudentLayoutContext>();
   const navigate = useNavigate();
   if (!user) return <Navigate to="/login" replace />;
 
@@ -34,8 +40,12 @@ function DashboardRoute() {
       displayName={displayName}
       uploads={uploads}
       semesters={semesters}
+      recentUploads={recentUploads}
+      notificationPermission={notificationPermission}
+      onEnableNotifications={onEnableNotifications}
       onNavigate={onNavigate}
       onOpenSemester={(semesterId) => navigate(`/notes/${semesterId}`)}
+      onOpenUpload={(upload) => navigate(upload.semesterId && upload.subjectId ? `/notes/${upload.semesterId}/${upload.subjectId}` : '/notes')}
       onUpload={onUpload}
     />
   );
