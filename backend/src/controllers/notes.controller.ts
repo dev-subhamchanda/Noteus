@@ -2,6 +2,7 @@ import type { RequestHandler } from 'express';
 import { ObjectId } from 'mongodb';
 import type { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import { getSemestersCollection, getUploadLogsCollection, getUsersCollection } from '../services/database.service.js';
+import type { UploadLogDocument } from '../services/database.service.js';
 import { createNoteAccessUrl, isCloudinaryConfigured, uploadNoteToCloudinary } from '../services/cloudinary.service.js';
 import { publishNoteUploaded, subscribeToNoteNotifications } from '../services/note-notifications.service.js';
 
@@ -39,22 +40,58 @@ export const listSharedNotes: RequestHandler = async (_req, res) => {
         .limit(500)
         .toArray();
 
+    const uploaderNames = await loadUploaderNames(uploads);
     res.json({
-        notes: uploads.map((upload) => ({
-            id: upload._id.toString(),
-            name: upload.originalName,
-            uploadedBy: upload.uploaderName ?? upload.firstName ?? upload.rollNumber,
-            subject: upload.subject,
-            ...(upload.subjectId ? { subjectId: upload.subjectId } : {}),
-            ...(upload.semesterId ? { semesterId: upload.semesterId } : {}),
-            ...(upload.semesterName ? { semesterName: upload.semesterName } : {}),
-            url: upload.url ?? '',
-            publicId: upload.publicId!,
-            size: upload.size,
-            uploadedAt: upload.createdAt,
-        })),
+        notes: uploads.map((upload) => toSharedNote(upload, uploaderNames)),
     });
 };
+
+export const listRecentNotes: RequestHandler = async (_req, res) => {
+    const since = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    const uploads = await getUploadLogsCollection()
+        .find({ status: 'uploaded', publicId: { $exists: true }, createdAt: { $gte: since } })
+        .sort({ createdAt: -1 })
+        .limit(500)
+        .toArray();
+
+    const uploaderNames = await loadUploaderNames(uploads);
+    res.json({
+        notes: uploads.map((upload) => toSharedNote(upload, uploaderNames)),
+    });
+};
+
+async function loadUploaderNames(uploads: UploadLogDocument[]): Promise<Map<string, string>> {
+    const rollNumbers = [...new Set(uploads.map((upload) => upload.rollNumber))];
+    const users = await getUsersCollection()
+        .find({ rollNumber: { $in: rollNumbers } }, {
+            projection: { rollNumber: 1, firstName: 1, middleName: 1, lastName: 1 },
+        })
+        .toArray();
+    return new Map(users.map((user) => [
+        user.rollNumber,
+        [user.firstName, user.middleName, user.lastName].filter((name) => Boolean(name?.trim())).join(' '),
+    ]));
+}
+
+function toSharedNote(
+    upload: UploadLogDocument & { _id: ObjectId },
+    uploaderNames: Map<string, string>,
+) {
+    return {
+        id: upload._id.toString(),
+        name: upload.originalName,
+        uploadedBy: upload.uploaderName?.trim() || uploaderNames.get(upload.rollNumber) ||
+            upload.firstName?.trim() || upload.rollNumber,
+        subject: upload.subject,
+        ...(upload.subjectId ? { subjectId: upload.subjectId } : {}),
+        ...(upload.semesterId ? { semesterId: upload.semesterId } : {}),
+        ...(upload.semesterName ? { semesterName: upload.semesterName } : {}),
+        url: upload.url ?? '',
+        publicId: upload.publicId!,
+        size: upload.size,
+        uploadedAt: upload.createdAt,
+    };
+}
 
 export const uploadNote: RequestHandler = async (req, res) => {
     if (!req.file) {

@@ -1,8 +1,16 @@
-import { apiBase, readApiResponse } from './api';
+import { apiBase, ApiResponseError, readApiResponse } from './api';
 import type { Semester, UploadRecord } from '../types/app';
 
 export async function loadSharedNotes(token: string): Promise<UploadRecord[]> {
   const response = await fetch(`${apiBase}/api/notes/shared`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await readApiResponse<{ notes: UploadRecord[] }>(response, true);
+  return data.notes;
+}
+
+export async function loadRecentNotes(token: string): Promise<UploadRecord[]> {
+  const response = await fetch(`${apiBase}/api/notes/recent`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await readApiResponse<{ notes: UploadRecord[] }>(response, true);
@@ -20,7 +28,7 @@ export async function streamNoteNotifications(
   });
   if (!response.ok) {
     await readApiResponse<never>(response, true);
-    throw new Error('Unable to connect to live notifications.');
+    throw new ApiResponseError('Unable to connect to live notifications.', response.status);
   }
   if (!response.body) throw new Error('The server does not support live notifications.');
 

@@ -37,7 +37,7 @@ The simple admin page is available at `/admin`. Sign in with the configured cred
 
 The frontend previews PDFs using PDF.js Express. It requests a short-lived signed Cloudinary URL from the backend, so the stored PDF does not need public delivery access. The Vite build copies the PDF.js Express runtime assets into `dist/pdfjs-express`. Configure `VITE_PDFJS_EXPRESS_LICENSE_KEY` in the frontend environment if required for your deployment; the installed package includes an evaluation license, so verify PDF.js Express licensing before production use.
 
-Signed-in students can load the latest shared notes from `GET /api/notes/shared` and receive live upload events over the authenticated `GET /api/notes/events` server-sent event stream. Each activity item includes the uploader name and subject. The frontend can display browser notifications after the student grants this site notification permission; those notifications are delivered while the app is open.
+Signed-in students can load shared notes from `GET /api/notes/shared`, recent uploads from the last three days from `GET /api/notes/recent`, and receive live upload events over the authenticated `GET /api/notes/events` server-sent event stream. Activity items include the uploader's full name and subject. The frontend can display browser notifications after the student grants this site notification permission; those notifications are delivered while the app is open.
 
 Example admin login body:
 

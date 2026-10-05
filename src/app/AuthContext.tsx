@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [uploads, setUploads] = useState<UploadRecord[]>(readUploads);
 
   const expireSession = useCallback(() => {
+    if (!localStorage.getItem(storageKeys.token)) return;
     localStorage.removeItem(storageKeys.token);
     localStorage.removeItem(storageKeys.user);
     setToken('');

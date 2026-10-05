@@ -21,15 +21,20 @@ import { UploadModal } from '../components/UploadModal';
 import ThemeToggle from '../components/ThemeToggle';
 import { loadSemesters } from '../services/semester.service';
 import { changeUserPin } from '../services/auth.service';
-import { loadSharedNotes, streamNoteNotifications } from '../services/notes.service';
+import { loadRecentNotes, loadSharedNotes, streamNoteNotifications } from '../services/notes.service';
+import { ApiResponseError } from '../services/api';
 import type { Semester, UploadRecord } from '../types/app';
 
+const recentActivityWindow = 3 * 24 * 60 * 60 * 1000;
+
 function mergeRecentUploads(current: UploadRecord[], incoming: UploadRecord[]): UploadRecord[] {
+  const cutoff = Date.now() - recentActivityWindow;
   const uploadsById = new Map(current.map((upload) => [upload.id, upload]));
   for (const upload of incoming) uploadsById.set(upload.id, upload);
   return [...uploadsById.values()]
+    .filter((upload) => new Date(upload.uploadedAt).getTime() >= cutoff)
     .sort((first, second) => new Date(second.uploadedAt).getTime() - new Date(first.uploadedAt).getTime())
-    .slice(0, 100);
+    .slice(0, 500);
 }
 
 export default function StudentLayout() {
@@ -49,6 +54,11 @@ export default function StudentLayout() {
     () => typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
   );
 
+  const showRequestError = (cause: unknown, fallback: string) => {
+    if (cause instanceof ApiResponseError && cause.status === 401) return;
+    toast.error(cause instanceof Error ? cause.message : fallback);
+  };
+
   useEffect(() => {
     if (!token) {
       setSemesters([]);
@@ -60,7 +70,7 @@ export default function StudentLayout() {
         if (active) setSemesters(data);
       })
       .catch((cause: unknown) => {
-        if (active) toast.error(cause instanceof Error ? cause.message : 'Unable to load semester folders.');
+        if (active) showRequestError(cause, 'Unable to load semester folders.');
       });
     return () => {
       active = false;
@@ -77,40 +87,85 @@ export default function StudentLayout() {
     let active = true;
     let connectionErrorShown = false;
 
-    loadSharedNotes(token)
-      .then((uploads) => {
-        if (active) setRecentUploads((current) => mergeRecentUploads(current, uploads));
-      })
-      .catch((cause: unknown) => {
-        if (active) toast.error(cause instanceof Error ? cause.message : 'Unable to load recent activity.');
-      });
+    const knownUploadIds = new Set<string>();
+    const notifyUpload = (upload: UploadRecord) => {
+      if (knownUploadIds.has(upload.id)) return;
+      knownUploadIds.add(upload.id);
+      setRecentUploads((current) => mergeRecentUploads(current, [upload]));
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        try {
+          new Notification('New notes uploaded', {
+            body: `${upload.uploadedBy ?? 'A student'} uploaded ${upload.name} to ${upload.subject}.`,
+            tag: upload.id,
+          });
+        } catch (cause) {
+          console.error('Unable to show browser notification:', cause);
+        }
+      }
+    };
+    const wait = (milliseconds: number) => new Promise<void>((resolve) => {
+      window.setTimeout(resolve, milliseconds);
+    });
 
     const connect = async () => {
+      let initialUploads: UploadRecord[];
+      try {
+        initialUploads = await loadRecentNotes(token);
+      } catch (cause) {
+        if (cause instanceof ApiResponseError && cause.status === 404) {
+          try {
+            const sharedNotes = await loadSharedNotes(token);
+            const cutoff = Date.now() - recentActivityWindow;
+            initialUploads = sharedNotes.filter((upload) => new Date(upload.uploadedAt).getTime() >= cutoff);
+          } catch (fallbackCause) {
+            if (active) showRequestError(fallbackCause, 'Unable to load recent activity.');
+            return;
+          }
+        } else {
+          if (active) showRequestError(cause, 'Unable to load recent activity.');
+          return;
+        }
+      }
+      if (!active) return;
+      initialUploads.forEach((upload) => knownUploadIds.add(upload.id));
+      setRecentUploads((current) => mergeRecentUploads(current, initialUploads));
+
+      let usePolling = false;
       let retryDelay = 1_000;
       while (active) {
-        try {
-          await streamNoteNotifications(token, controller.signal, (upload) => {
-            if (!active) return;
-            setRecentUploads((current) => mergeRecentUploads(current, [upload]));
-            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-              try {
-                new Notification('New notes uploaded', {
-                  body: `${upload.uploadedBy ?? 'A student'} uploaded ${upload.name} to ${upload.subject}.`,
-                  tag: upload.id,
-                });
-              } catch (cause) {
-                console.error('Unable to show browser notification:', cause);
-              }
+        if (usePolling) {
+          await wait(30_000);
+          if (!active) return;
+          try {
+            const uploads = await loadSharedNotes(token);
+            uploads
+              .filter((upload) => new Date(upload.uploadedAt).getTime() >= Date.now() - recentActivityWindow)
+              .forEach(notifyUpload);
+          } catch (cause) {
+            if (cause instanceof ApiResponseError && cause.status === 401) return;
+            if (!connectionErrorShown) {
+              showRequestError(cause, 'Unable to refresh recent activity.');
+              connectionErrorShown = true;
             }
-          });
+          }
+          continue;
+        }
+
+        try {
+          await streamNoteNotifications(token, controller.signal, notifyUpload);
           throw new Error('The live notification stream ended.');
         } catch (cause) {
           if (!active || controller.signal.aborted) return;
+          if (cause instanceof ApiResponseError && cause.status === 404) {
+            usePolling = true;
+            continue;
+          }
+          if (cause instanceof ApiResponseError && cause.status === 401) return;
           if (!connectionErrorShown) {
-            toast.error(cause instanceof Error ? cause.message : 'Live notifications disconnected; retrying.');
+            showRequestError(cause, 'Live notifications disconnected; retrying.');
             connectionErrorShown = true;
           }
-          await new Promise((resolve) => window.setTimeout(resolve, retryDelay));
+          await wait(retryDelay);
           retryDelay = Math.min(retryDelay * 2, 30_000);
         }
       }

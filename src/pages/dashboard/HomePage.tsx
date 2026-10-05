@@ -33,7 +33,7 @@ export function HomePage({ displayName, uploads, semesters, recentUploads, notif
 
       <section className="panel notifications-panel recent-activity-panel">
         <div className="section-heading">
-          <div><h2>Recent activity <span className="notification-count">{recentUploads.length}</span></h2><p>New notes shared across your study circle.</p></div>
+          <div><h2>Recent activity <span className="notification-count">{recentUploads.length}</span></h2><p>Notes uploaded in the last 3 days.</p></div>
           <button
             type="button"
             className="notification-permission-button"
@@ -46,18 +46,18 @@ export function HomePage({ displayName, uploads, semesters, recentUploads, notif
           </button>
         </div>
         <div className="notification-list">
-          {recentUploads.slice(0, 5).map((upload) => (
+          {recentUploads.map((upload) => (
             <button className="notification-row" type="button" key={upload.id} onClick={() => onOpenUpload(upload)}>
               <span className="notification-icon purple"><FiBell /></span>
               <span className="min-w-0 flex-1">
                 <span className="notification-title">{upload.name}</span>
-                <span className="notification-detail">{upload.uploadedBy ?? 'A student'} uploaded to {upload.subject}{upload.semesterName ? ` · ${upload.semesterName}` : ''}</span>
+                <span className="notification-detail">{upload.uploadedBy || 'Uploader name unavailable'} uploaded to {upload.subject}{upload.semesterName ? ` · ${upload.semesterName}` : ''}</span>
                 <small>{new Date(upload.uploadedAt).toLocaleString()}</small>
               </span>
               <span className="unread-dot" />
             </button>
           ))}
-          {!recentUploads.length && <p className="notification-empty">No notes have been shared yet.</p>}
+          {!recentUploads.length && <p className="notification-empty">No notes were uploaded in the last 3 days.</p>}
         </div>
         <button className="all-updates" onClick={() => onNavigate('notes')}>Browse shared notes <FiArrowRight /></button>
       </section>
