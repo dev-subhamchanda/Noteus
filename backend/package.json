@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "wrangler dev",
+    "deploy": "wrangler publish",
+    "typecheck": "tsc --noEmit",
     "build": "npx tsc",
     "start": "nodemon dist/index.js",
     "test": "tsx --test src/services/admin-auth.service.test.ts src/services/csv.service.test.ts"
@@ -37,6 +39,7 @@
     "@types/node": "^26.6.3",
     "@types/nodemailer": "^8.0.2",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "wrangler": "^4.156.0"
   }
 }
