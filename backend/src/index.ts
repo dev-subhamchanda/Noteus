@@ -12,10 +12,7 @@ dotenv.config();
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
 
-const frontendOrigins = (process.env.FRONTEND_ORIGINS as string ?? 'http://localhost:5173')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+const frontendOrigins = process.env.FRONTEND_ORIGINS as string ?? '*';
 
 app.use(cors({ origin: frontendOrigins }));
 app.use(express.json());
