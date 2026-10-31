@@ -14,7 +14,7 @@ const port = Number(process.env.PORT ?? 3000);
 
 const frontendOrigins = process.env.FRONTEND_ORIGINS as string ?? '*';
 
-app.use(cors({ origin: frontendOrigins }));
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use(morgan('dev'));
 app.get('/', (_req, res) => {
