@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "university-note-api",
-  "main": "src/index.ts",
+  "name": "noteus",
+  "main": "dist/index.js",
   "compatibility_date": "2026-10-30",
   "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"]
 }

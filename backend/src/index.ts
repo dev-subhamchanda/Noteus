@@ -28,9 +28,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/notes', notesRouter);
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-});
+app.listen(port);
 
 connectDatabase().catch((error: unknown) => {
     console.error('Unable to start server:', error);
