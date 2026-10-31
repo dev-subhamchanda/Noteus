@@ -3,5 +3,24 @@
   "name": "noteus",
   "main": "dist/index.js",
   "compatibility_date": "2026-10-30",
-  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"]
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+
+  // ...
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": false,
+      "head_sampling_rate": 1,
+      "persist": true
+    },
+    "issue_detection": {
+      "enabled": false
+    }
+  },
+  // ...
 }
