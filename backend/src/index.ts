@@ -20,10 +20,13 @@ const frontendOrigins = (process.env.FRONTEND_ORIGINS ?? 'http://localhost:5173'
 app.use(cors({ origin: frontendOrigins }));
 app.use(express.json());
 app.use(morgan('dev'));
-app.get('/', (req, res) => {
-    res.json({ message: 'Hello, World!' });
+app.get('/', (_req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'Noteus API is running!',
+        platform: 'Cloudflare Workers',
+    });
 });
-
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/notes', notesRouter);
