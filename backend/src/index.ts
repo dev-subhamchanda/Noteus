@@ -21,7 +21,7 @@ app.use(cors({ origin: frontendOrigins }));
 app.use(express.json());
 app.use(morgan('dev'));
 app.get('/', (req, res) => {
-    res.send('Hello, World!');
+    res.json({ message: 'Hello, World!' });
 });
 
 app.use('/api/auth', authRouter);
