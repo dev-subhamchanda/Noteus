@@ -7,7 +7,7 @@ import authRouter from './routes/auth.route.js';
 import adminRouter from './routes/admin.route.js';
 import notesRouter from './routes/notes.route.js';
 import { connectDatabase } from './services/database.service.js';
-
+import {httpServerHandler} from 'cloudflare:node'
 dotenv.config();
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
@@ -30,7 +30,10 @@ app.use('/api/notes', notesRouter);
 
 app.listen(port);
 
+
 connectDatabase().catch((error: unknown) => {
     console.error('Unable to start server:', error);
     process.exitCode = 1;
 });
+
+export default httpServerHandler({port})
