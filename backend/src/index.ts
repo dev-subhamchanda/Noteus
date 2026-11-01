@@ -45,14 +45,11 @@ const errorHandler: ErrorRequestHandler = (error: unknown, _req, res, _next) => 
 };
 app.use(errorHandler);
 
-const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);
-if (isDirectRun) {
-    app.listen(port, () => {
-        console.log(`Noteus API listening on port ${port}`);
-    });
-}
-
 await connectDatabase().catch((error: unknown) => {
     console.error('Unable to connect to the database:', error);
 });
+
+app.listen(port, () => {
+        console.log(`Noteus API listening on port ${port}`);
+    });
 
