@@ -52,8 +52,7 @@ if (isDirectRun) {
     });
 }
 
-connectDatabase().catch((error: unknown) => {
+await connectDatabase().catch((error: unknown) => {
     console.error('Unable to connect to the database:', error);
 });
 
-export default app;
