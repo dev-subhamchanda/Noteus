@@ -10,7 +10,6 @@
     "module": "nodenext",
     "target": "esnext",
     "types": [
-      "./worker-configuration.d.ts",
       "node"
     ],
     // For nodejs:
